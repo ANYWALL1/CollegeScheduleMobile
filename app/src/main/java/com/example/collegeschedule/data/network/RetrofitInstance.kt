@@ -1,4 +1,4 @@
-package com.example.collegeschedule.data.api
+package com.example.collegeschedule.data.network
 
 import com.example.collegeschedule.data.api.ScheduleApi
 import retrofit2.Retrofit
