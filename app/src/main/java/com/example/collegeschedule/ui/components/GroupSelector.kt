@@ -21,16 +21,16 @@ fun GroupSelector(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    // Текст, который вводит пользователь
+
     var searchText by remember { mutableStateOf(selectedGroup) }
 
-    // Фильтруем список групп на лету: если ввели текст, показываем только совпадения
+
     val filteredGroups = remember(searchText, groups) {
         if (searchText.isBlank()) groups
         else groups.filter { it.groupName.contains(searchText, ignoreCase = true) }
     }
 
-    // Обновляем текст, если извне пришла новая выбранная группа
+
     LaunchedEffect(selectedGroup) {
         if (selectedGroup.isNotEmpty()) {
             searchText = selectedGroup
@@ -46,17 +46,17 @@ fun GroupSelector(
                 value = searchText,
                 onValueChange = {
                     searchText = it
-                    expanded = true // Открываем список при вводе
+                    expanded = true
                 },
                 label = { Text("Выберите группу") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor() // Привязываем меню к этому полю
+                    .menuAnchor()
             )
 
-            // Само выпадающее меню
+            // выпадающее меню
             if (filteredGroups.isNotEmpty()) {
                 ExposedDropdownMenu(
                     expanded = expanded,
@@ -67,7 +67,7 @@ fun GroupSelector(
                             text = { Text(group.groupName) },
                             onClick = {
                                 searchText = group.groupName
-                                onGroupSelected(group.groupName) // Сообщаем наверх о выборе
+                                onGroupSelected(group.groupName) // Сообщаем о выборе
                                 expanded = false
                             }
                         )
