@@ -1,10 +1,10 @@
 package com.example.collegeschedule
 
-
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -23,9 +23,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import com.example.collegeschedule.data.api.ScheduleApi
-import com.example.collegeschedule.data.repository.ScheduleRepository
+import com.example.collegeschedule.data.local.FavoritesManager
+import com.example.collegeschedule.ui.FavoritesScreen
 import com.example.collegeschedule.ui.schedule.ScheduleScreen
 import com.example.collegeschedule.ui.theme.CollegeScheduleTheme
 import retrofit2.Retrofit
@@ -46,32 +47,27 @@ class MainActivity : ComponentActivity() {
 @PreviewScreenSizes
 @Composable
 fun CollegeScheduleApp() {
-    var currentDestination by rememberSaveable {
-        mutableStateOf(AppDestinations.HOME) }
 
+    val context = LocalContext.current
+    val favoritesManager = remember { FavoritesManager(context) }
+
+
+    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
+    var selectedGroup by rememberSaveable { mutableStateOf("") }
+
+    // Инициализация Retrofit
     val retrofit = remember {
         Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:5268/") // localhost для Android Emulator
+            .baseUrl("http://10.0.2.2:5268/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-
-    55
-
-    val api = remember { retrofit.create(ScheduleApi::class.java) }
-    val repository = remember { ScheduleRepository(api) }
-
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
             AppDestinations.entries.forEach {
                 item(
-                    icon = {
-                        Icon(
-                            it.icon,
-                            contentDescription = it.label
-                        )
-                    },
+                    icon = { Icon(it.icon, contentDescription = it.label) },
                     label = { Text(it.label) },
                     selected = it == currentDestination,
                     onClick = { currentDestination = it }
@@ -80,20 +76,30 @@ fun CollegeScheduleApp() {
         }
     ) {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            when (currentDestination) {
-                AppDestinations.HOME -> ScheduleScreen()
+            Box(modifier = Modifier.padding(innerPadding)) {
+                when (currentDestination) {
+                    AppDestinations.HOME -> ScheduleScreen(
+                        favoritesManager = favoritesManager,
+                        currentGroup = selectedGroup,
+                        onGroupChange = { selectedGroup = it }
+                    )
 
-                AppDestinations.FAVORITES ->
-                    Text("Избранные группы", modifier =
-                        Modifier.padding(innerPadding))
+                    AppDestinations.FAVORITES -> FavoritesScreen(
+                        favoritesManager = favoritesManager,
+                        onGroupSelected = { group ->
+                            // логика перехода
+                            selectedGroup = group
+                            currentDestination = AppDestinations.HOME
+                        }
+                    )
 
-                AppDestinations.PROFILE ->
-                    Text("Профиль студента", modifier =
-                        Modifier.padding(innerPadding))
+                    AppDestinations.PROFILE -> Text("Профиль студента (в разработке)")
+                }
             }
         }
     }
 }
+
 
 enum class AppDestinations(
     val label: String,
