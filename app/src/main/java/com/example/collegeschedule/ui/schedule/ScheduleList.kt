@@ -1,10 +1,8 @@
 package com.example.collegeschedule.ui.schedule
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
@@ -16,6 +14,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.collegeschedule.data.dto.ScheduleByDateDto
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun ScheduleList(data: List<ScheduleByDateDto>) {
@@ -24,9 +25,11 @@ fun ScheduleList(data: List<ScheduleByDateDto>) {
         contentPadding = PaddingValues(bottom = 80.dp) // Отступ под нижним меню
     ) {
         items(data) { day ->
-            // Заголовок дня недели
+            val formattedDate = formatToHumanDate(day.lessonDate)
+
+            // Заголовок
             Text(
-                text = "${day.lessonDate} (${day.weekday})",
+                text = "$formattedDate (${day.weekday})",
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -52,7 +55,7 @@ fun ScheduleList(data: List<ScheduleByDateDto>) {
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
                         Row(modifier = Modifier.padding(12.dp)) {
-                            // Левая колонка Время и номер пары
+                            // Время и номер пары
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier.width(60.dp)
@@ -72,7 +75,7 @@ fun ScheduleList(data: List<ScheduleByDateDto>) {
 
                             Spacer(modifier = Modifier.width(12.dp))
 
-                            // Правая колонка Детали
+                            // Детали
                             Column {
                                 lesson.groupParts.forEach { (part, info) ->
                                     if (info != null) {
@@ -124,6 +127,23 @@ fun ScheduleList(data: List<ScheduleByDateDto>) {
                 }
             }
         }
+    }
+}
+
+// функция для даты
+fun formatToHumanDate(dateString: String): String {
+    return try {
+        //  берем то что до буквы T
+        val cleanDate = dateString.substringBefore("T")
+
+        //  Парсим  дату
+        val date = LocalDate.parse(cleanDate)
+
+
+        val formatter = DateTimeFormatter.ofPattern("d MMMM", Locale("ru"))
+        date.format(formatter)
+    } catch (e: Exception) {
+        dateString
     }
 }
 
